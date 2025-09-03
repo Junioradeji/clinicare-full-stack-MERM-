@@ -62,7 +62,6 @@ export default function Patient() {
       {isPending ? <SkeletonTable /> : <>
       {isError ? <ErrorAlert error={error?.response?.data?.message} /> : <> 
 
-      {patients?.length > 0 ? (
         <>
           <Suspense fallback={<SkeletonTable />}>
             <Table patients={patients} />
@@ -74,9 +73,6 @@ export default function Patient() {
             currentPage={currentPage}
           />
         </>
-      ) : (
-        <p className="mt-6 font-semibold text-center">No Patients found</p>
-      )}
       </>}
       </>}
     </PageWrapper>

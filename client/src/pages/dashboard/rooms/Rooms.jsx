@@ -67,7 +67,7 @@ export default function Rooms() {
                      <ErrorAlert error={error?.response?.data?.message} />
                    ) : (
                      <>
-                       {rooms?.length > 0 ? (
+                     
                          <>
                            <Suspense fallback={<SkeletonTable />}>
                              <Table rooms={rooms} />
@@ -79,11 +79,7 @@ export default function Rooms() {
                              currentPage={currentPage}
                            />
                          </>
-                       ) : (
-                         <p className="mt-6 font-semibold text-center">
-                           No Rooms Found
-                         </p>
-                       )}
+                     
                      </>
                    )}
                  </>
