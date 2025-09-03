@@ -25,6 +25,10 @@ export function PrivateRoutes({ children, accessToken, user }) {
     if (!accessToken) {
       navigate(from, { state: { from: location }, replace: true });
     }
+    // Redirect to patient onboarding if user is not completed onboarding
+    if (user && !user.isVerified && location.pathname !== "/verify-account") {
+      navigate("/verify-account");
+    }
     //handle redirect to verify account
     if (
       user &&
@@ -37,6 +41,26 @@ export function PrivateRoutes({ children, accessToken, user }) {
         state: { from: location },
         replace: true,
       });
+    }
+  }, [accessToken, from, location, navigate, user]);
+  return children;
+}
+
+export function VerifiedRoutes({ children, accessToken, user }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const from = location.pathname?.from || "/account/signin";
+
+  useEffect(() => {
+    if (!accessToken) {
+      navigate(from, {
+        state: { from: location },
+        replace: true,
+      });
+    }
+    //handle redirect to verify account
+    if (user && !user.isVerified && location.pathname !== "/verify-account") {
+      navigate("/verify-account");
     }
   }, [accessToken, from, location, navigate, user]);
   return children;

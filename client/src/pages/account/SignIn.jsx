@@ -8,6 +8,7 @@ import { validateSignInSchema } from "@/utils/dataSchema";
 import { loginUser } from "@/api/auth";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contextstore";
+import { useNavigate } from "react-router";
 
 export default function SignIn() {
   const [error, setError] = useState(null);
@@ -21,17 +22,21 @@ export default function SignIn() {
     resolver: zodResolver(validateSignInSchema),
   });
 
-  const {setAccessToken} = useAuth()
+  const {setAccessToken, user} = useAuth()
+  const navigate = useNavigate();
       const mutation = useMutation({
         mutationFn: loginUser,
     onSuccess: (response)=> { //what you want to do if the api call is a success
       // console.log(response); //remove the response when you are done using it
       toast.success(response?.data?.message || "Login successful") 
       setAccessToken(response?.data?.data?.accessToken)
+      if (!user?.isVerified) {
+        navigate("/verify-account")
+      }
       //save accessToken
     },
     onError: (error) => {
-      console.log(error);
+      import.meta.env.DEV && console.log(error);
       setError(error?.response?.data?.message || "Login failed")
       
       

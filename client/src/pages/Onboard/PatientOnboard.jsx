@@ -6,6 +6,11 @@ import { bloodGroup } from "@/utils/constant";
 import { useEffect, useMemo, useState } from "react"; //use memos are used to avoid re-rendering of components when their props change. saying it would optimize a value when nothing changes
 import { formatDate } from "@/utils/constant";
 import { useAuth } from "@/contextstore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { registerPatient } from "@/api/patients";
+import { toast } from "sonner";
+import { useNavigate } from "react-router";
+import ErrorAlert from "@/components/ErrorAlert";
 
 export default function PatientsOnboard() {
   useMetaArgs({
@@ -13,6 +18,15 @@ export default function PatientsOnboard() {
     description: "Complete your patient profile",
     keywords: "Health, Register, Clinic, Hospital",
   });
+
+  const { user, accessToken } = useAuth(); //we want to get the user from the context
+  const [currentStep, setCurrentStep] = useState(
+    user?.isCompletedOnboard ? 3 : 1
+  );
+  const [field, setField] = useState(false); //we want to keep track of the input field
+  const [error, setError] = useState(null);
+
+
   const {
     register,
     handleSubmit,
@@ -22,15 +36,18 @@ export default function PatientsOnboard() {
   } = useForm({
     resolver: zodResolver(validatePatientSchema),
   });
-  const [currentStep, setCurrentStep] = useState(1);
-  const [field, setField] = useState(false); //we want to keep track of the input field
-  const { user } = useAuth(); //we want to get the user from the context
+
+
 
   const gender = ["male", "female", "other"]; //we want to get the blood group options from the constants file
   const bloodGroupOptions = Object.entries(bloodGroup).map(([key, value]) => ({
     name: key,
     id: value,
   }));
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
 
   //we are setting the values of the input field with the values we have in the user state
   useEffect(() => {
@@ -73,6 +90,22 @@ export default function PatientsOnboard() {
     setField(hasEmptyFields || hasErrors);
   }, [currentStep, errors, formValues, requiredFields1, requiredFields2]);
 
+  const mutation = useMutation({
+    mutationFn: registerPatient,
+    onSuccess: (response) => {
+      if (response.status === 201) {
+        toast.success(response?.data?.message);
+        //clear old user data
+        queryClient.invalidateQueries({ queryKey: ["auth_user"] });
+      }
+    },
+    onError: (error) => {
+      import.meta.env.DEV && console.log(error);
+      setError(
+        error?.response?.data?.message || "Error registering your details"
+      );
+    },
+  });
 
 
 //function that would would help us swap between our forms
@@ -84,18 +117,26 @@ export default function PatientsOnboard() {
     }
   };
 
+  const onSubmit = async (formData) => {
+    mutation.mutate({ formData, accessToken });
+  };
+
+
   return (
     <>
       <div className=" flex items-center justify-center min-h-[85vh] gap-2  ">
-        <form className=" w-full max-w-[600px] px-2 " onSubmit={handleSubmit()}>
+        <form className=" w-full max-w-[600px] px-2 " onSubmit={handleSubmit(onSubmit)}>
           <h1 className="text-center mb-5 text-2xl font-bold">
             Patients Onboard
           </h1>
           <fieldset className="fieldset bg-white border-base-300 rounded-box border gap-7 p-4">
             <p className=" text-base text-center font-medium">
-              Hello <span className="font-bold">{user?.fullname}</span>, Please
-              complete your patient profile
+             Hello <span className="font-bold">{user?.fullname}</span>,{" "}
+              {user?.isCompletedOnboard
+                ? "Onboarding completed"
+                : "please complete your patient profile"}
             </p>
+            {error && <ErrorAlert error={error} />}
             {/* this is the steps part when we move to each page */}
             <ul className="steps">
               <li
@@ -334,6 +375,26 @@ export default function PatientsOnboard() {
                 </div>
               </>
             )}
+            {currentStep === 3 && (
+              <div className=" p-4 text-center">
+                <img
+                  src="/Success.svg"
+                  alt="success"
+                  className="w-full h-[200px]"
+                />
+                <h1 className="text-2xl font-bold">Congratulations!</h1>
+                <p className="text-gray-600">
+                  "Your account has been verified successfully."
+                </p>
+                <button
+                  className="btn my-4 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                  size="lg"
+                  onClick={() => navigate("/dashboard", { replace: true })}
+                >
+                  Continue to dashboard
+                </button>
+              </div>
+            )}
             <div className=" flex md:justify-end gap-4">
               {currentStep === 1 && (
                 <button
@@ -355,9 +416,9 @@ export default function PatientsOnboard() {
                   <button
                     className="btn  bg-[#2B7FFF] hover:bg-[#1E5FCC] text-white  w-full md:w-[140px]"
                     type="submit"
-                    disabled={isSubmitting  ||  field }
+                 disabled={mutation.isPending || field}
                   >
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                 {mutation.isPending ? "Submitting..." : "Submit"}
                   </button>
                 </div>
               )}

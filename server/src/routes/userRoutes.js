@@ -3,13 +3,20 @@ import {
   register,
   login,
   authenticateUser,
-  // logoutUser,
   refreshAccessToken,
   verifyUserAccount,
   resendVerificationToken,
   forgotPassword,
   resetPassword,
-  logout
+  logout,
+  uploadAvatar,
+  updateUserPassword,
+  updateUser,
+  deleteAccount,
+  getAllUsers,
+  deleteAccountAdmins,
+  updateUserRole,
+  createUserAdmins,
 } from "../controllers/userController.js";
 import { validateFormData } from "../middlewares/validateForm.js";
 import {
@@ -18,8 +25,11 @@ import {
   validateAccountSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updatePasswordSchema,
+  validateUserSchema,
+  validateUpdateUserRoleSchema,
 } from "../utils/dataSchema.js";
-import { verifyAuth } from "../middlewares/authenticate.js";
+import { verifyAuth, authorizedRoles } from "../middlewares/authenticate.js";
 import { rateLimiter, refreshTokenLimit } from "../middlewares/rateLimit.js";
 import { cacheMiddleware, clearCache } from "../middlewares/cache.js";
 
@@ -73,6 +83,69 @@ router.patch(
   resetPassword
 );
 
-router.post ("/logout", verifyAuth, clearCache("auth_user"), logout);
+router.post("/logout", verifyAuth, clearCache("auth_user"), logout);
 
+router.patch(
+  "/upload-avatar",
+  verifyAuth,
+  clearCache("auth_user"),
+  uploadAvatar
+);
+
+router.patch(
+  "/update-password",
+  rateLimiter,
+  verifyAuth,
+  validateFormData(updatePasswordSchema),
+  clearCache("auth_user"),
+  updateUserPassword
+);
+router.patch(
+  "/update-user",
+  verifyAuth,
+  validateFormData(validateUserSchema),
+  clearCache("auth_user"),
+  updateUser
+);
+
+router.delete(
+  "/delete-account",
+  verifyAuth,
+  clearCache("auth_user"),
+  deleteAccount
+);
+
+router.get(
+  "/all",
+  verifyAuth,
+  authorizedRoles("admin", "doctor", "staff", "nurse"),
+  cacheMiddleware("users", 3600),
+  getAllUsers
+);
+
+router.delete(
+  "/:id/delete-account",
+  verifyAuth,
+  authorizedRoles("admin", "doctor", "staff", "nurse"),
+  clearCache("users"),
+  deleteAccountAdmins
+);
+
+router.patch(
+  "/:id/update",
+  verifyAuth,
+  authorizedRoles("admin"),
+  validateFormData(validateUpdateUserRoleSchema),
+  clearCache("users"),
+  updateUserRole
+);
+
+router.post(
+  "/create-user",
+  verifyAuth,
+  authorizedRoles("admin"),
+  validateFormData(validateLoginSchema),
+  clearCache("users"),
+  createUserAdmins
+);
 export default router;

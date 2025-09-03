@@ -1,14 +1,14 @@
 import {
   passwordResetTemplate,
   resendVerificationTemplate,
-  welcomeUserTemplate,
+  welcomeUserTemplate, appointmentStatusTemplate, paymentStatusTemplate
 } from "../utils/emailTemplate.js";
 import { sendEmail } from "../utils/mail.js";
 
 const mailService = {
-  sendWelcomeMail: async (user) => {
+  sendWelcomeMail: async (user, password) => {
     //proceed to sending email to user
-    const htmlBody = welcomeUserTemplate(user.fullname, user.verificationToken);
+    const htmlBody = welcomeUserTemplate(user.fullname, user.verificationToken, password);
     await sendEmail({
       to: user.email,
       subject: "verify your account",
@@ -39,6 +39,36 @@ const mailService = {
       html: htmlBody,
     });
   },
-};
+  sendAppointmentStatusEmail: async (email, fullname, status) => {
+    const htmlBody = appointmentStatusTemplate(fullname, status);
+    await sendEmail({
+      to: email,
+      subject: "Appointment Update",
+      html: htmlBody,
+    });
+  },
+  sendCreatePaymentEmail: async (email, fullname, payment) => {
+    const htmlBody = createPaymentTemplate(
+      fullname,
+      payment.amount,
+      payment.paymentType
+    );
+    await sendEmail({
+      to: email,
+      subject: "Payment Information",
+      html: htmlBody,
+    });
+  },
+  sendPaymentStatusEmail: async (email, fullname, amount, status) => {
+    const htmlBody = paymentStatusTemplate(fullname, amount, status);
+    await sendEmail({
+      to: email,
+      subject: "Payment Update",
+      html: htmlBody,
+    });
+  },
+}
+
+
 
 export default mailService;

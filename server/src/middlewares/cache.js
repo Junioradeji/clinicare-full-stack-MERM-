@@ -20,7 +20,7 @@ export const cacheMiddleware =
       try {
         const cachedData = cache.get(cacheKey); //retrieve data associated with cachedKey
         if (cachedData) {
-          console.log(`catch key for: $(cacheKey)`);
+          console.log(`Cache hit for: ${cacheKey}`);
           return res.json(cachedData); //send saved response back to client
         }
         //try to save data from our response
@@ -49,7 +49,7 @@ export const clearCache =
       return next();
     }
     const userId = req.user.id || "";
-    const userPrefix = userId ? `user_&{userId}_` : "";
+    const userPrefix = userId ? `user_${userId}_` : "";
     // if we have a userId, only clear keys that match both pattern and userId 
     const matchingKeys = pattern 
     ? keys.filter((key)=>{

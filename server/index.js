@@ -11,11 +11,17 @@ import {
 //api routes
 import userRoutes from "./src/routes/userRoutes.js";
 import patientRoutes from "./src/routes/patientRoutes.js";
+import roomRoutes from "./src/routes/roomRoutes.js";
+import doctorRoutes from "./src/routes/doctorRoutes.js";
+import appointmentRoutes from "./src/routes/appointmentRoutes.js";
+import paymentRoutes from "./src/routes/paymentRoutes.js";
+import inpatientRoutes from "./src/routes/inpatientRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 
 // initialize express app
 const app = express();
 //middlewares - functions that have access to the request and and response object and can perform any task specified. - execute a piece of code, make changes to request and response object, call the next handler function. it basically helps to add and reuse functions across the app routes and endpoints. The flow -
-// 1 request recieved by server
+// 1 request received by server
 //2 req is passed through each middleware specified
 //3 route handler processed the request
 //4 response is sent back through the middleware
@@ -48,7 +54,7 @@ app.get("/", (req, res) => {
   res.status(200).json({
     status: "Success",
     message: "Server is running",
-    enviroment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV,
     timestamp: req.requestTime,
   });
 });
@@ -56,6 +62,13 @@ app.get("/", (req, res) => {
 //assemble our api routes
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/patients", patientRoutes);
+app.use("/api/v1/rooms", roomRoutes);
+app.use("/api/v1/doctors", doctorRoutes);
+app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/inpatients", inpatientRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
+
 
 // handle route errors
 app.use(catchNotFound);
@@ -154,7 +167,7 @@ const startServer = async () => {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    console.error(`❌ Faioled to start server: ${error.message}`);
+    console.error(`❌ Failed to start server: ${error.message}`);
     process.exit(1);
   }
 };

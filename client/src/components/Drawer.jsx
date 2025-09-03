@@ -2,9 +2,11 @@ import { RiMenuLine, RiCloseLine } from "@remixicon/react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { navLinks } from "@/utils/constant";
+import { useAuth } from "@/contextstore";
 
 export default function Drawer() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
 
   const toggleDrawer = () => setOpen(!open);
   
@@ -48,7 +50,7 @@ export default function Drawer() {
                 <h2 className="text-lg font-semibold text-zinc-800">
                   Dizzy Gilepsy!
                 </h2>
-                <p>Admin</p>
+                <p>{user?.role}</p>
               </div>
             </div>
 

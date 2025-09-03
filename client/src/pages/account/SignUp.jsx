@@ -39,7 +39,7 @@ export default function SignUp() {
       setAccessToken(response?.data?.data?.accessToken);
     },
     onError: (error) => {
-      console.log(error);
+      import.meta.env.DEV && console.log(error);
       setError(error?.response?.data?.message || "Registraction failed");
     },
   });
